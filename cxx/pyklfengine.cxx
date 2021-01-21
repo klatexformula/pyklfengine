@@ -129,7 +129,7 @@ void set_if_in_kwargs(ClassType & x, MemberType ClassType::* member, std::string
 
 
 
-PYBIND11_MODULE(pyklf, m)
+PYBIND11_MODULE(pyklfengine, m)
 {
   auto json_module = py::module::import("json");
   
@@ -159,7 +159,7 @@ PYBIND11_MODULE(pyklf, m)
          [](const klfengine::color & c) {
            nlohmann::json j;
            j = c;
-           return "pyklf.color(*" + j.dump() + ")";
+           return "pyklfengine.color(*" + j.dump() + ")";
          })
     ;
 
@@ -194,7 +194,7 @@ PYBIND11_MODULE(pyklf, m)
          [](const klfengine::margins & m) {
            nlohmann::json j;
            j = m;
-           return "pyklf.margins(*" + j.dump() + ")";
+           return "pyklfengine.margins(*" + j.dump() + ")";
          })
     ;
 
@@ -219,7 +219,7 @@ PYBIND11_MODULE(pyklf, m)
                set_if_in_kwargs(in, &klfengine::input::parameters, "parameters", kwargs);
 
                if (py::len(kwargs) > 0) {
-                 throw py::value_error("Invalid keyword argument for pyklf.input: "
+                 throw py::value_error("Invalid keyword argument for pyklfengine.input: "
                                        + py::repr(kwargs).cast<std::string>());
                }
 
