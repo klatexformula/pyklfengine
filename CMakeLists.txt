@@ -4,6 +4,8 @@ project(pyklfengine)
 
 find_package(pybind11 2.4 REQUIRED)
 
+find_package(klfengine REQUIRED)
+
 pybind11_add_module(pyklfengine cxx/pyklfengine.cxx)
 
 set_target_properties(pyklfengine PROPERTIES
@@ -11,7 +13,6 @@ set_target_properties(pyklfengine PROPERTIES
   CXX_STANDARD_REQURIED on
   )
 
-target_compile_definitions(pyklfengine PRIVATE -DKLFENGINE_USE_GULRAK_FILESYSTEM)
-
-target_include_directories(pyklfengine
-  PRIVATE ../klfengine/deps_install/include ../klfengine/include)
+target_link_libraries(pyklfengine
+  PRIVATE klfengine::klfengine
+  )

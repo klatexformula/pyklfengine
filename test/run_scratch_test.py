@@ -1,6 +1,8 @@
 
 import sys
 sys.path.insert(0, ".")
+sys.path.insert(0, "./build")
+sys.path.insert(0, "..")
 sys.path.insert(0, "../build")
 
 import pyklfengine
@@ -12,7 +14,8 @@ inp = pyklfengine.input(
     math_mode=(r"$\begin{aligned}", r"\end{aligned}$")
 )
 
-inp.latex_engine = "pdflatex"
+#inp.latex_engine = "pdflatex"
+inp.latex_engine = "lualatex"
 
 
 inp.parameters = {
@@ -20,6 +23,10 @@ inp.parameters = {
     "baseline_rule": {"type": "line", "setup": r"\color{red!25!black}", "thickness": r"0.25pt"}
 }
 inp.preamble += r"\usepackage{xcolor}"
+# inp.preamble += r"""
+# \usepackage{xcolor}
+# \usepackage{lua-visual-debug} % debug TeX boxes :)
+# """
 
 print(pyklfengine.margins(0.0, 3.0))
 print(pyklfengine.margins(*[0.5, 1.5, 2.52, 3.53]))
