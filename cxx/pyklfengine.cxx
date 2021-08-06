@@ -256,22 +256,45 @@ PYBIND11_MODULE(pyklfengine, m)
         })
     ;
   
-  auto klfimplpkg_engine_m = m.def_submodule("klfimplpkg_engine", "klfimplpkg engine (...)");
+  { // klfimplpkg_engine module -- only quick compilation function for now
+    auto klfimplpkg_engine_m = m.def_submodule("klfimplpkg_engine", "klfimplpkg engine (...)");
 
-  klfimplpkg_engine_m.def(
-      "compile_to",
-      [](klfengine::input input, std::string format) {
-        klfengine::klfimplpkg_engine::engine e;
+    klfimplpkg_engine_m.def(
+        "compile_to",
+        [](klfengine::input input, std::string format) {
+          klfengine::klfimplpkg_engine::engine e;
 
-        e.set_settings(klfengine::settings::detect_settings());
+          e.set_settings(klfengine::settings::detect_settings());
 
-        auto r = e.run(input);
-        r->compile();
-        auto data = r->get_data(klfengine::format_spec{format});
+          auto r = e.run(input);
+          r->compile();
+          auto data = r->get_data(klfengine::format_spec{format});
 
-        std::string data_str{reinterpret_cast<const char*>(&data[0]), data.size()};
+          std::string data_str{data.begin(), data.end()};
 
-        return py::bytes{data_str};
-      }
-      );
+          return py::bytes{data_str};
+        }
+        );
+  }
+
+  { // latextoimage_engine module -- only quick compilation function for now
+    auto latextoimage_engine_m = m.def_submodule("latextoimage_engine", "latextoimage engine (...)");
+
+    latextoimage_engine_m.def(
+        "compile_to",
+        [](klfengine::input input, std::string format) {
+          klfengine::latextoimage_engine::engine e;
+
+          e.set_settings(klfengine::settings::detect_settings());
+
+          auto r = e.run(input);
+          r->compile();
+          auto data = r->get_data(klfengine::format_spec{format});
+
+          std::string data_str{data.begin(), data.end()};
+
+          return py::bytes{data_str};
+        }
+        );
+  }
 }

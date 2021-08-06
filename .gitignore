@@ -1,5 +1,11 @@
 *~
 .DS_Store
+
+
 build
+
 __pycache__
+
 *.py[cdo]
+
+.python-version
