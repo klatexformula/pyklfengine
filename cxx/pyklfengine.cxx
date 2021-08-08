@@ -264,7 +264,12 @@ PYBIND11_MODULE(pyklfengine, m)
         [](klfengine::input input, std::string format) {
           klfengine::klfimplpkg_engine::engine e;
 
-          e.set_settings(klfengine::settings::detect_settings());
+          auto sett = klfengine::settings::detect_settings();
+          //sett.gs_method = "process";
+          e.set_settings(sett);
+
+          using json = nlohmann::json;
+          fprintf(stderr, "DEBUG: using settings = %s\n", json{sett}.dump().c_str());
 
           auto r = e.run(input);
           r->compile();
@@ -285,7 +290,12 @@ PYBIND11_MODULE(pyklfengine, m)
         [](klfengine::input input, std::string format) {
           klfengine::latextoimage_engine::engine e;
 
-          e.set_settings(klfengine::settings::detect_settings());
+          auto sett = klfengine::settings::detect_settings();
+          //sett.gs_method = "process";
+          e.set_settings(sett);
+
+          using json = nlohmann::json;
+          fprintf(stderr, "DEBUG: using settings = %s\n", json{sett}.dump().c_str());
 
           auto r = e.run(input);
           r->compile();
