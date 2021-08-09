@@ -26,7 +26,6 @@
  * SOFTWARE.
  */
 
-// header we are testing gets included first (helps detect missing #include's)
 #include <klfengine/klfengine>
 
 #include <pybind11/pybind11.h>
@@ -129,12 +128,42 @@ void set_if_in_kwargs(ClassType & x, MemberType ClassType::* member, std::string
 
 
 
+template<typename EngineClass>
+py::bytes run_compile_to(klfengine::input input, klfengine::format_spec fmt,
+                         py::object settings_obj)
+{
+  klfengine::settings sett;
+  if (!settings_obj.is_none()) {
+    sett = settings_obj.cast<klfengine::settings>();
+  } else {
+    sett = klfengine::settings::detect_settings();
+  }
+  
+  EngineClass e;
+
+  e.set_settings(sett);
+
+  // { using json = nlohmann::json;
+  //   json j; j = sett;
+  //   fprintf(stderr, "DEBUG: using settings = %s\n", j.dump().c_str()); }
+
+  auto r = e.run(input);
+  r->compile();
+
+  auto data = r->get_data(fmt);
+
+  return py::bytes{(const char*)data.data(), data.size()};
+}
+
+
+
+
 PYBIND11_MODULE(pyklfengine, m)
 {
   auto json_module = py::module::import("json");
   
   //
-  // input
+  // ******* klfengine basic data types *******
   //
 
   m.attr("length") = py::eval("float"); // the "float" python type object
@@ -198,6 +227,51 @@ PYBIND11_MODULE(pyklfengine, m)
          })
     ;
 
+  //
+  // ******* klfengine::format_spec *******
+  //
+
+  py::class_<klfengine::format_spec>(m, "format_spec")
+    .def(py::init(
+             [json_module](std::string format, py::dict parameters_py) {
+               klfengine::value::dict parameters;
+               nlohmann::json::parse(
+                   json_module.attr("dumps")(parameters_py).cast<std::string>()
+              ).get_to(parameters);
+               return std::unique_ptr<klfengine::format_spec>{ new klfengine::format_spec{
+                   format, parameters
+                 } };
+             }),
+         "format"_a = std::string{},
+         "parameters"_a = py::dict{}
+        )
+    .def_readwrite("format", &klfengine::format_spec::format)
+    .def_property(
+        "parameters",
+        [json_module](klfengine::format_spec & obj) {
+          nlohmann::json j;
+          j = obj.parameters;
+          return json_module.attr("loads")( j.dump() );
+        },
+        [json_module](klfengine::format_spec & obj, py::dict dic) {
+          nlohmann::json::parse(
+              json_module.attr("dumps")(dic).cast<std::string>()
+              ).get_to(obj.parameters);
+        }
+        )
+    .def("__repr__",
+         [](const klfengine::format_spec & m) {
+           nlohmann::json j;
+           j = m.parameters;
+           return "pyklfengine.format_spec(format=" + m.format + ", parameters=" + j.dump() + ")";
+         })
+    ;
+    
+
+  //
+  // ******* klfengine::input *******
+  //
+
   py::class_<klfengine::input>(m, "input")
     .def(py::init(
              [json_module](py::kwargs kwargs) {
@@ -254,32 +328,103 @@ PYBIND11_MODULE(pyklfengine, m)
           j = obj;
           return j.dump();
         })
+    .def("__repr__",
+         [](const klfengine::input & c) {
+           nlohmann::json j;
+           j = c;
+           return "pyklfengine.input(*" + j.dump() + ")";
+         })
     ;
+
+
+
+  //
+  // ******* klfengine::settings *******
+  //
+  py::class_<klfengine::settings>(m, "settings")
+    .def(py::init(
+             [json_module](py::kwargs kwargs) {
+               auto settptr = std::unique_ptr<klfengine::settings>{new klfengine::settings{}};
+
+               klfengine::settings & sett = *settptr;
+
+               set_if_in_kwargs(sett, &klfengine::settings::temporary_directory,
+                                "temporary_directory", kwargs);
+               set_if_in_kwargs(sett, &klfengine::settings::texbin_directory,
+                                "texbin_directory", kwargs);
+               set_if_in_kwargs(sett, &klfengine::settings::gs_method,
+                                "gs_method", kwargs);
+               set_if_in_kwargs(sett, &klfengine::settings::gs_executable_path,
+                                "gs_executable_path", kwargs);
+               set_if_in_kwargs(sett, &klfengine::settings::gs_libgs_path,
+                                "gs_libgs_path", kwargs);
+               set_if_in_kwargs(sett, &klfengine::settings::subprocess_add_environment,
+                                "subprocess_add_environment", kwargs);
+
+               if (py::len(kwargs) > 0) {
+                 throw py::value_error("Invalid keyword argument for pyklfengine.settings: "
+                                       + py::repr(kwargs).cast<std::string>());
+               }
+
+               return settptr;
+             }))
+    .def_readwrite("temporary_directory", &klfengine::settings::temporary_directory)
+    .def_readwrite("texbin_directory", &klfengine::settings::texbin_directory)
+    .def_readwrite("gs_method", &klfengine::settings::gs_method)
+    .def_readwrite("gs_executable_path", &klfengine::settings::gs_executable_path)
+    .def_readwrite("gs_libgs_path", &klfengine::settings::gs_libgs_path)
+    .def_readwrite("subprocess_add_environment", &klfengine::settings::subprocess_add_environment)
+    .def("get_tex_executable_path",
+         [](const klfengine::settings & obj, const std::string & exe_name) {
+           return obj.get_tex_executable_path(exe_name);
+         }
+        )
+    .def_static(
+        "detect_settings",
+        [](const std::vector<std::string> & extra_paths) {
+          return klfengine::settings::detect_settings(extra_paths);
+        },
+        "extra_paths"_a = std::vector<std::string>{}
+    )
+    .def_static(
+        "get_wildcard_search_paths",
+        [](const std::vector<std::string> & extra_paths) {
+          return klfengine::settings::get_wildcard_search_paths(extra_paths);
+        },
+        "extra_paths"_a = std::vector<std::string>{}
+    )
+    .def("to_json", [](klfengine::settings & obj) {
+          nlohmann::json j;
+          j = obj;
+          return j.dump();
+        })
+    .def("__repr__",
+         [](const klfengine::settings & c) {
+           nlohmann::json j;
+           j = c;
+           return "pyklfengine.settings(*" + j.dump() + ")";
+         })
+    ;
+
+
+  //
+  // ******* klfengine::klfimplpkg_engine *******
+  //
   
   { // klfimplpkg_engine module -- only quick compilation function for now
     auto klfimplpkg_engine_m = m.def_submodule("klfimplpkg_engine", "klfimplpkg engine (...)");
 
     klfimplpkg_engine_m.def(
         "compile_to",
-        [](klfengine::input input, std::string format) {
-          klfengine::klfimplpkg_engine::engine e;
-
-          auto sett = klfengine::settings::detect_settings();
-          //sett.gs_method = "process";
-          e.set_settings(sett);
-
-          using json = nlohmann::json;
-          fprintf(stderr, "DEBUG: using settings = %s\n", json{sett}.dump().c_str());
-
-          auto r = e.run(input);
-          r->compile();
-          auto data = r->get_data(klfengine::format_spec{format});
-
-          std::string data_str{data.begin(), data.end()};
-
-          return py::bytes{data_str};
-        }
-        );
+        [](klfengine::input input, klfengine::format_spec fmt, py::object settings_obj) {
+          return run_compile_to<klfengine::klfimplpkg_engine::engine>(
+              std::move(input), std::move(fmt), std::move(settings_obj)
+          );
+        },
+        "input"_a,
+        "format"_a,
+        "settings"_a = py::none{}
+    );
   }
 
   { // latextoimage_engine module -- only quick compilation function for now
@@ -287,24 +432,14 @@ PYBIND11_MODULE(pyklfengine, m)
 
     latextoimage_engine_m.def(
         "compile_to",
-        [](klfengine::input input, std::string format) {
-          klfengine::latextoimage_engine::engine e;
-
-          auto sett = klfengine::settings::detect_settings();
-          //sett.gs_method = "process";
-          e.set_settings(sett);
-
-          using json = nlohmann::json;
-          fprintf(stderr, "DEBUG: using settings = %s\n", json{sett}.dump().c_str());
-
-          auto r = e.run(input);
-          r->compile();
-          auto data = r->get_data(klfengine::format_spec{format});
-
-          std::string data_str{data.begin(), data.end()};
-
-          return py::bytes{data_str};
-        }
-        );
+        [](klfengine::input input, klfengine::format_spec fmt, py::object settings_obj) {
+          return run_compile_to<klfengine::latextoimage_engine::engine>(
+              std::move(input), std::move(fmt), std::move(settings_obj)
+          );
+        },
+        "input"_a,
+        "format"_a,
+        "settings"_a = py::none{}
+    );
   }
 }
