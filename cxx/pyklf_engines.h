@@ -26,27 +26,8 @@
  * SOFTWARE.
  */
 
+#pragma once
+
 #include "pyklfdefs.h"
 
-
-#include "pyklf_engines.h"
-
-#include "pyklf_basestuff.h"
-
-
-#include <klfengine/implementation>
-
-
-PYBIND11_MODULE(pyklfengine, m)
-{
-  // define base stuff
-
-  pyklf_def_base_stuff(m);
-
-  // define engines
-
-  pyklf_def_engines(m);
-
-  // 
-
-}
+void pyklf_def_engines(py::module & m);
