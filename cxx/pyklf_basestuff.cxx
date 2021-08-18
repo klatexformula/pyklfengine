@@ -8,7 +8,33 @@ void pyklf_def_base_stuff(py::module & m)
   // ******* klfengine basic data types *******
   //
 
-  m.attr("length") = py::eval("float"); // the "float" python type object
+  py::class_<klfengine::length>(m, "length")
+    .def(py::init(
+             [](double value, std::string unit) {
+               return std::unique_ptr<klfengine::length>{
+                 new klfengine::length{value, std::move(unit)}
+               };
+             }),
+         "value"_a = 0.0,
+         "unit"_a = std::string{"pt"}
+    )
+    .def(py::init(
+             [](const std::string & texlength) {
+               return std::unique_ptr<klfengine::length>{
+                 new klfengine::length{texlength}
+               };
+             })
+    )
+    .def_readwrite("value", &klfengine::length::value)
+    .def_readwrite("unit", &klfengine::length::unit)
+    .def("__repr__",
+         [](const klfengine::length & l) {
+           std::string repr_length_as_str{
+             py::repr(py::str{l.to_string()}).cast<std::string>()
+           };
+           return "pyklfengine.length(" + repr_length_as_str + ")";
+         })
+    ;
 
   py::class_<klfengine::color>(m, "color")
     .def(py::init(
@@ -49,10 +75,21 @@ void pyklf_def_base_stuff(py::module & m)
                    top, right, bottom, left
                  } };
              }),
-         "top"_a = 0.0,
-         "right"_a = 0.0,
-         "bottom"_a = 0.0,
-         "left"_a = 0.0
+         "top"_a = klfengine::length{},
+         "right"_a = klfengine::length{},
+         "bottom"_a = klfengine::length{},
+         "left"_a = klfengine::length{}
+        )
+    .def(py::init(
+             [](double top, double right, double bottom, double left) {
+               return std::unique_ptr<klfengine::margins>{ new klfengine::margins{
+                   top, right, bottom, left
+                 } };
+             }),
+         "top"_a = klfengine::length{},
+         "right"_a = klfengine::length{},
+         "bottom"_a = klfengine::length{},
+         "left"_a = klfengine::length{}
         )
     .def_readwrite("top", &klfengine::margins::top)
     .def_readwrite("right", &klfengine::margins::right)
@@ -96,7 +133,41 @@ void pyklf_def_base_stuff(py::module & m)
          [](const klfengine::format_spec & m) {
            nlohmann::json j;
            j = m.parameters;
-           return "pyklfengine.format_spec(format=" + m.format + ", parameters=" + j.dump() + ")";
+           return "pyklfengine.format_spec(format=" + m.format + ", parameters="
+             + j.dump() + ")";
+         })
+    ;
+
+  //
+  // ******* klfengine::format_description *******
+  //
+
+  py::class_<klfengine::format_description>(m, "format_description")
+    .def(py::init(
+             [](klfengine::format_spec format_spec, std::string title, std::string desc) {
+               return std::unique_ptr<klfengine::format_description>{
+                 new klfengine::format_description{
+                   std::move(format_spec), std::move(title), std::move(desc)
+                 }
+               };
+             }),
+         "format_spec"_a = klfengine::format_spec{},
+         "title"_a = std::string{},
+         "description"_a = std::string{}
+        )
+    .def_readwrite("format_spec", &klfengine::format_description::format_spec)
+    .def_readwrite("title", &klfengine::format_description::title)
+    .def_readwrite("description", &klfengine::format_description::description)
+    .def("__repr__",
+         [](const klfengine::format_description & m) {
+           nlohmann::json jfs;
+           jfs = m.format_spec;
+           nlohmann::json jtitle;
+           jtitle = m.title;
+           nlohmann::json jdesc;
+           jdesc = m.description;
+           return "pyklfengine.format_description(format_spec=" + jfs.dump()
+             + ", title=" + jtitle.dump() + ", description=" + jdesc.dump() + ")";
          })
     ;
     
