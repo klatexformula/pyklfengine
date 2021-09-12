@@ -29,6 +29,9 @@
 #pragma once
 
 
+#define KLFENGINE_HANDLE_WARNING pyklf_callback_warn
+#define KLFENGINE_HANDLE_ERROR pyklf_callback_error
+
 #include <klfengine/klfengine>
 
 #include <pybind11/pybind11.h>

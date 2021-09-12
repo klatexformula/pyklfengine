@@ -1,6 +1,17 @@
 
 #include "pyklf_basestuff.h"
 
+void pyklf_callback_error(const std::string & where, const std::string & what)
+{
+  auto pylogging = py::module::import("logging");
+  pylogging.attr("getLogger")(where).attr("error")(what);
+}
+void pyklf_callback_warn(const std::string & where, const std::string & what)
+{
+  auto pylogging = py::module::import("logging");
+  pylogging.attr("getLogger")(where).attr("warning")(what);
+}
+
 
 void pyklf_def_base_stuff(py::module & m)
 {
@@ -25,6 +36,7 @@ void pyklf_def_base_stuff(py::module & m)
                };
              })
     )
+    .def(py::init<const klfengine::length&>())
     .def_readwrite("value", &klfengine::length::value)
     .def_readwrite("unit", &klfengine::length::unit)
     .def("__repr__",
@@ -48,6 +60,7 @@ void pyklf_def_base_stuff(py::module & m)
          "blue"_a = 0,
          "alpha"_a = 255
         )
+    .def(py::init<const klfengine::color&>())
     .def_readwrite("red", &klfengine::color::red)
     .def_readwrite("green", &klfengine::color::green)
     .def_readwrite("blue", &klfengine::color::blue)
@@ -91,6 +104,7 @@ void pyklf_def_base_stuff(py::module & m)
          "bottom"_a = klfengine::length{},
          "left"_a = klfengine::length{}
         )
+    .def(py::init<const klfengine::margins&>())
     .def_readwrite("top", &klfengine::margins::top)
     .def_readwrite("right", &klfengine::margins::right)
     .def_readwrite("bottom", &klfengine::margins::bottom)
@@ -119,6 +133,7 @@ void pyklf_def_base_stuff(py::module & m)
          "format"_a = std::string{},
          "parameters"_a = py::dict{}
         )
+    .def(py::init<const klfengine::format_spec&>())
     .def_readwrite("format", &klfengine::format_spec::format)
     .def_property(
         "parameters",
@@ -155,6 +170,7 @@ void pyklf_def_base_stuff(py::module & m)
          "title"_a = std::string{},
          "description"_a = std::string{}
         )
+    .def(py::init<const klfengine::format_description&>())
     .def_readwrite("format_spec", &klfengine::format_description::format_spec)
     .def_readwrite("title", &klfengine::format_description::title)
     .def_readwrite("description", &klfengine::format_description::description)
@@ -170,7 +186,29 @@ void pyklf_def_base_stuff(py::module & m)
              + ", title=" + jtitle.dump() + ", description=" + jdesc.dump() + ")";
          })
     ;
-    
+
+  //
+  // ******* klfengine::format_description *******
+  //
+  py::class_<klfengine::format_provider>(m, "format_provider")
+    .def("canonical_format", &klfengine::format_provider::canonical_format)
+    .def("canonical_format_or_empty", &klfengine::format_provider::canonical_format_or_empty)
+    .def("available_formats", &klfengine::format_provider::available_formats)
+    .def("has_format",
+         static_cast<bool (klfengine::format_provider::*)(std::string)>(
+           &klfengine::format_provider::has_format
+         )
+    )
+    .def("has_format",
+         static_cast<bool (klfengine::format_provider::*)(const klfengine::format_spec &)>(
+           &klfengine::format_provider::has_format
+         )
+    )
+    .def("find_format", [](klfengine::format_provider & f,
+                           const std::vector<klfengine::format_spec> & formats) {
+      return f.find_format(formats);
+    })
+    ;
 
   //
   // ******* klfengine::input *******
@@ -203,6 +241,7 @@ void pyklf_def_base_stuff(py::module & m)
 
                return inptr;
              }))
+    .def(py::init<const klfengine::input&>())
     .def_readwrite("latex", &klfengine::input::latex)
     .def_readwrite("math_mode", &klfengine::input::math_mode)
     .def_readwrite("preamble", &klfengine::input::preamble)
@@ -268,12 +307,14 @@ void pyklf_def_base_stuff(py::module & m)
 
                return settptr;
              }))
+    .def(py::init<const klfengine::settings&>())
     .def_readwrite("temporary_directory", &klfengine::settings::temporary_directory)
     .def_readwrite("texbin_directory", &klfengine::settings::texbin_directory)
     .def_readwrite("gs_method", &klfengine::settings::gs_method)
     .def_readwrite("gs_executable_path", &klfengine::settings::gs_executable_path)
     .def_readwrite("gs_libgs_path", &klfengine::settings::gs_libgs_path)
-    .def_readwrite("subprocess_add_environment", &klfengine::settings::subprocess_add_environment)
+    .def_readwrite("subprocess_add_environment",
+                   &klfengine::settings::subprocess_add_environment)
     .def("get_tex_executable_path",
          [](const klfengine::settings & obj, const std::string & exe_name) {
            return obj.get_tex_executable_path(exe_name);

@@ -31,5 +31,8 @@
 
 #include "pyklfdefs.h"
 
+void pyklf_callback_warn(const std::string & where, const std::string & what);
+void pyklf_callback_error(const std::string & where, const std::string & what);
+
 
 void pyklf_def_base_stuff(py::module & pyklfengine_m);
