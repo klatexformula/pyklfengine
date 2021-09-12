@@ -1,15 +1,31 @@
 
 #include "pyklf_basestuff.h"
 
+inline void pyklf_do_log(const std::string & levelmethod,
+                         std::string where, const std::string & msg)
+{
+  // do you believe there is no std::string::replace(string, string) in C++
+  // (at least C++11) ??!!  --> https://stackoverflow.com/a/3418285/1694896
+  std::size_t pos = 0;
+  for (;;) {
+    pos = where.find("::", pos);
+    if (pos == std::string::npos || pos >= where.size()) {
+      break;
+    }
+    where.replace(pos, 2, ".");
+  }
+  std::string loggername{ "klfengine." + where };
+  auto pylogging = py::module::import("logging");
+  pylogging.attr("getLogger")(loggername).attr(levelmethod.c_str())(msg);
+}
+
 void pyklf_callback_error(const std::string & where, const std::string & what)
 {
-  auto pylogging = py::module::import("logging");
-  pylogging.attr("getLogger")(where).attr("error")(what);
+  pyklf_do_log("error", where, what);
 }
 void pyklf_callback_warn(const std::string & where, const std::string & what)
 {
-  auto pylogging = py::module::import("logging");
-  pylogging.attr("getLogger")(where).attr("warning")(what);
+  pyklf_do_log("warning", where, what);
 }
 
 
