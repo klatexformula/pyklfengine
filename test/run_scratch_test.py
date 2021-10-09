@@ -37,24 +37,24 @@ print(pyklfengine.margins(*[0.5, 1.5, 2.52, 3.53]))
 inp.margins = pyklfengine.margins(1, 3.5120421, 1, 3.5001)
 
 print("A")
-pdf_data = pyklfengine.klfimplpkg_engine.compile_to(inp, "PDF")
+pdf_data = pyklfengine.engines.klflatexpackage.compile_to(inp, "PDF")
 with open("tmp-klf-test-output.pdf", "wb") as f:
    f.write(pdf_data)
 
 print("B")
-altpdf_data = pyklfengine.latextoimage_engine.compile_to(inp, "PDF")
+altpdf_data = pyklfengine.engines.latextoimage.compile_to(inp, "PDF")
 with open("tmp-klf-test-output-alt.pdf", "wb") as f:
    f.write(altpdf_data)
 
 print("C")
 inp2 = inp
 inp2.bg_color = pyklfengine.color(255,194,221)
-pdf2_data = pyklfengine.latextoimage_engine.compile_to(inp2, "PDF")
+pdf2_data = pyklfengine.engines.latextoimage.compile_to(inp2, "PDF")
 with open("tmp-klf-test-output-2.pdf", "wb") as f:
     f.write(pdf2_data)
 
 print("D")
-png_data = pyklfengine.latextoimage_engine.compile_to(inp, "PNG")
+png_data = pyklfengine.engines.latextoimage.compile_to(inp, "PNG")
 with open("tmp-klf-test-output.png", "wb") as f:
     f.write(png_data)
 

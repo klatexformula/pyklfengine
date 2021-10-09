@@ -20,8 +20,8 @@ i2.latex = 'z+z+z=3z'
 
 fmt = pyklfengine.format_spec('PNG')
 
-which_class = pyklfengine.klfimplpkg_engine
-#which_class = pyklfengine.latextoimage_engine
+which_class = pyklfengine.engines.klflatexpackage
+#which_class = pyklfengine.engines.latextoimage
 
 engine_instance = which_class.engine()
 engine_instance.set_settings(s)

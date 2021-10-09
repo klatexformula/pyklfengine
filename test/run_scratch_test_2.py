@@ -21,17 +21,17 @@ fmt = pyklfengine.format_spec(
                        'graphics_alpha_bits': 1,} # red border not antialiased
    }
 )
-d = pyklfengine.klfimplpkg_engine.compile_to(i, fmt, s)
+d = pyklfengine.engines.klflatexpackage.compile_to(i, fmt, s)
 with open("tmp-klf-b2-out."+fmt.format.lower(), "wb") as f:
    f.write(d)
 
 fmt = pyklfengine.format_spec('PDF', {'latex_raw': True})
-d = pyklfengine.klfimplpkg_engine.compile_to(i, fmt, s)
+d = pyklfengine.engines.klflatexpackage.compile_to(i, fmt, s)
 with open("tmp-klf-b2-out-RAW."+fmt.format.lower(), "wb") as f:
    f.write(d)
 
 fmt = pyklfengine.format_spec('EPS', {})
-d = pyklfengine.klfimplpkg_engine.compile_to(i, fmt, s)
+d = pyklfengine.engines.klflatexpackage.compile_to(i, fmt, s)
 with open("tmp-klf-b2-out."+fmt.format.lower(), "wb") as f:
    f.write(d)
 

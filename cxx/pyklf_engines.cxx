@@ -30,9 +30,17 @@
 
 
 template<typename EngineClass>
-py::bytes run_compile_to(klfengine::input input, klfengine::format_spec fmt,
+py::bytes run_compile_to(klfengine::input input, py::object fmt_obj,
                          py::object settings_obj)
 {
+  // determine format
+  klfengine::format_spec fmt;
+  if (py::isinstance<py::str>(fmt_obj)) {
+    fmt = klfengine::format_spec{fmt_obj.cast<std::string>()};
+  } else {
+    fmt = fmt_obj.cast<klfengine::format_spec>();
+  }
+
   klfengine::settings sett;
   if (!settings_obj.is_none()) {
     sett = settings_obj.cast<klfengine::settings>();
@@ -146,19 +154,24 @@ void pyklf_def_engines(py::module & m)
     ;
   
   
+  //
+  // ******* klfengine::engines *******
+  //
+  auto engines_m = m.def_submodule("engines", "Available Engines");
+
 
   //
-  // ******* klfengine::klfimplpkg_engine *******
+  // ******* klfengine::engines::klflatexpackage *******
   //
   
-  { // klfimplpkg_engine module
-    auto klfimplpkg_engine_m =
-      m.def_submodule("klfimplpkg_engine", "klfimplpkg engine (...)");
+  { // klflatexpackage module
+    auto klflatexpackage_m =
+      engines_m.def_submodule("klflatexpackage", "klflatexpackage engine");
 
-    klfimplpkg_engine_m.def(
+    klflatexpackage_m.def(
         "compile_to",
-        [](klfengine::input input, klfengine::format_spec fmt, py::object settings_obj) {
-          return run_compile_to<klfengine::klfimplpkg_engine::engine>(
+        [](klfengine::input input, py::object fmt, py::object settings_obj) {
+          return run_compile_to<klfengine::engines::klflatexpackage::engine>(
               std::move(input), std::move(fmt), std::move(settings_obj)
           );
         },
@@ -167,8 +180,8 @@ void pyklf_def_engines(py::module & m)
         "settings"_a = py::none{}
     );
 
-    py::class_<klfengine::klfimplpkg_engine::engine, klfengine::engine>(
-        klfimplpkg_engine_m,
+    py::class_<klfengine::engines::klflatexpackage::engine, klfengine::engine>(
+        klflatexpackage_m,
         "engine"
       )
       .def(py::init<>())
@@ -177,17 +190,17 @@ void pyklf_def_engines(py::module & m)
   }
 
   //
-  // ******* klfengine::latextoimage_engine *******
+  // ******* klfengine::engines::latextoimage *******
   //
   
-  { // latextoimage_engine module
-    auto latextoimage_engine_m =
-      m.def_submodule("latextoimage_engine", "latextoimage engine (...)");
+  { // latextoimage module
+    auto latextoimage_m =
+      engines_m.def_submodule("latextoimage", "latextoimage engine");
 
-    latextoimage_engine_m.def(
+    latextoimage_m.def(
         "compile_to",
-        [](klfengine::input input, klfengine::format_spec fmt, py::object settings_obj) {
-          return run_compile_to<klfengine::latextoimage_engine::engine>(
+        [](klfengine::input input, py::object fmt, py::object settings_obj) {
+          return run_compile_to<klfengine::engines::latextoimage::engine>(
               std::move(input), std::move(fmt), std::move(settings_obj)
           );
         },
@@ -197,8 +210,8 @@ void pyklf_def_engines(py::module & m)
     );
 
 
-    py::class_<klfengine::latextoimage_engine::engine, klfengine::engine>(
-        latextoimage_engine_m,
+    py::class_<klfengine::engines::latextoimage::engine, klfengine::engine>(
+        latextoimage_m,
         "engine"
       )
       .def(py::init<>())

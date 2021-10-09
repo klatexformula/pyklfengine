@@ -115,10 +115,10 @@ void pyklf_def_base_stuff(py::module & m)
                    top, right, bottom, left
                  } };
              }),
-         "top"_a = klfengine::length{},
-         "right"_a = klfengine::length{},
-         "bottom"_a = klfengine::length{},
-         "left"_a = klfengine::length{}
+         "top"_a = 0.,
+         "right"_a = 0.,
+         "bottom"_a = 0.,
+         "left"_a = 0.
         )
     .def(py::init<const klfengine::margins&>())
     .def_readwrite("top", &klfengine::margins::top)
