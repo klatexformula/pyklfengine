@@ -241,6 +241,8 @@ void pyklf_def_base_stuff(py::module & m)
                set_if_in_kwargs(in, &klfengine::input::math_mode, "math_mode", kwargs);
                set_if_in_kwargs(in, &klfengine::input::preamble, "preamble", kwargs);
                set_if_in_kwargs(in, &klfengine::input::latex_engine, "latex_engine", kwargs);
+               set_if_in_kwargs(in, &klfengine::input::latex_check_rerun, "latex_check_rerun", kwargs);
+               set_if_in_kwargs(in, &klfengine::input::latex_max_runs, "latex_max_runs", kwargs);
                set_if_in_kwargs(in, &klfengine::input::font_size, "font_size", kwargs);
                set_if_in_kwargs(in, &klfengine::input::fg_color, "fg_color", kwargs);
                set_if_in_kwargs(in, &klfengine::input::bg_color, "bg_color", kwargs);
@@ -262,6 +264,8 @@ void pyklf_def_base_stuff(py::module & m)
     .def_readwrite("math_mode", &klfengine::input::math_mode)
     .def_readwrite("preamble", &klfengine::input::preamble)
     .def_readwrite("latex_engine", &klfengine::input::latex_engine)
+    .def_readwrite("latex_check_rerun", &klfengine::input::latex_check_rerun)
+    .def_readwrite("latex_max_runs", &klfengine::input::latex_max_runs)
     .def_readwrite("font_size", &klfengine::input::font_size)
     .def_readwrite("fg_color", &klfengine::input::fg_color)
     .def_readwrite("bg_color", &klfengine::input::bg_color)

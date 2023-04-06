@@ -28,6 +28,10 @@
 
 #pragma once
 
+#include <string>
+
+void pyklf_callback_warn(const std::string & where, const std::string & what);
+void pyklf_callback_error(const std::string & where, const std::string & what);
 
 #define KLFENGINE_HANDLE_WARNING pyklf_callback_warn
 #define KLFENGINE_HANDLE_ERROR pyklf_callback_error
